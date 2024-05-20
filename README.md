@@ -63,9 +63,19 @@ chmod +x drl.x86_64
 ```
 
 ### 训练
-
+安装'hydra'和'Omegacfg'来配置实验参数。
+原训练：
 ```
 python train_ppo.py
+```
+默认参数配置在`cfg/EpMineEnvCfg.yaml`中。
+使用默认参数训练（PPO baseline）：
+```
+python train.py 
+```
+可在命令行中修改`.yaml`中已有的参数：
+```
+python train.py env.only_image=False train.algo=sac train.n_timesteps=1500000
 ```
 
 ## 3. RL Env设置
