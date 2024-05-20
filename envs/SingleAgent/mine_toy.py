@@ -7,11 +7,9 @@ from typing import Optional
 import time
 import random
 import cv2 as cv
-import gymnasium as gym
+import gym
 import os
 import socket
-# from gymnasium.envs.registration import register
-
 def IsOpen(port, ip='127.0.0.1'):
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     result = s.connect_ex((ip,int(port)))
@@ -32,13 +30,13 @@ def warp_action(action):
 class EpMineEnv(gym.Env):
 
     def __init__(self,
-                #  file_name: str = "envs/SingleAgent/MineField_Linux-0417/drl.x86_64",
+                 # file_name: str = "envs/SingleAgent/MineField_Linux-0417/drl.x86_64",
                  file_name: str = "envs/SingleAgent/MineField_Windows-0510-random/drl.exe",
                  port: Optional[int] = 2000,
                  seed: int = 0,
                  work_id: int = 0,
                  time_scale: float = 20.0,
-                 max_episode_steps: int = 1800,
+                 max_episode_steps: int = 1000,
                  only_image: bool = True,
                  only_state: bool = False,
                  no_graph: bool = False):
@@ -89,7 +87,7 @@ class EpMineEnv(gym.Env):
     
     @property
     def action_space(self):
-        con_spc = gym.spaces.Box(low=np.array([-10.0, -10.0, -3.0],dtype=np.float32), high=np.array([10.0, 10.0, 3.0],dtype=np.float32), shape=(3,), dtype=np.float32)
+        con_spc = gym.spaces.Box(low=np.array([-10.0, -10.0, -3.0]), high=np.array([10.0, 10.0, 3.0]), shape=(3,), dtype=np.float32)
         return con_spc
     
     def decoder_results(self, results):
@@ -135,10 +133,9 @@ class EpMineEnv(gym.Env):
             self.seed(self.sd)
         self.step_num = 0
         self.env.reset()
-        obs, _, _, info = self._step()
+        obs, _, _, _ = self._step()
         self.last_dist = self.get_dist_to_mine(self.current_results)
-        # 为了满足最新版gymnasium的格式要求，reset的返回值为(obs, info)
-        return (obs, info)
+        return obs
     
     def get_reward(self, results):
         reward = results[TEAM_NAME].reward[AGENT_ID]
@@ -150,10 +147,7 @@ class EpMineEnv(gym.Env):
         current_dist = self.get_dist_to_mine(reuslts=results)
         # print(self.last_dist - current_dist)
         delta_r = (self.last_dist - current_dist) 
-        # final_reward += delta_r
-        final_reward += delta_r * np.exp(-current_dist)
-
-        # final_reward += np.exp(-current_dist)
+        final_reward += delta_r
         # if current_dist < 0.5:
         #     final_reward += 1.0
         self.last_dist = current_dist
@@ -175,10 +169,7 @@ class EpMineEnv(gym.Env):
             if done:
                 break
         self.step_num += 1
-        # 为了满足最新版gymnasium的格式要求，返回值为
-        # observation, reward, terminated, truncated, info 
-        # 这里可以理解为terminated和truncated一样
-        return obs, toal_reward, done, done, info
+        return obs, toal_reward, done, info
 
     def _step(self, action_dict=None) -> DecisionSteps:
         all_agents = []
@@ -234,7 +225,7 @@ def main():
         action = env.action_space.sample()
         # action = [0.0, 5.0, 0.0]
         # action = [hori, vert, spin, arm_ang, catching]
-        obs, reward, done,_, info = env.step(action)
+        obs, reward, done, info = env.step(action)
         position = info["robot_position"]
         # print(reward)
         # print(np.array(obs["image"]).shape)

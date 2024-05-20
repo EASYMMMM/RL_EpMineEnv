@@ -9,7 +9,6 @@ def main(cfg : DictConfig) -> None:
     import os
     import gym
     import numpy as np
-    import time
     from datetime import datetime
     from stable_baselines3 import PPO,DDPG,SAC
     from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
@@ -22,13 +21,9 @@ def main(cfg : DictConfig) -> None:
     # 随机种子
     seed = cfg.train.seed
 
-    env_id = cfg.env.env_id
+    env_id = "EpMineEnv-v0"
     num_cpu = cfg.env.env_num  
-    algo = {
-        "sac": SAC,
-        "ddpg": DDPG,
-        "ppo": PPO,
-    }[cfg.train.algo]
+    algo = cfg.train.algo
     n_timesteps = cfg.train.n_timesteps
     exp_name = cfg.env.exp_name   
 
@@ -45,6 +40,7 @@ def main(cfg : DictConfig) -> None:
     # tensorboard log 路径
     tensorboard_log_path = experiment_dir+'/tensorboard_log'
     tensorboard_log_name = f"{exp_name}_{algo}"
+    print(tensorboard_log_name)
 
 
     env_kwargs = {  "only_image":cfg.env.only_image,
@@ -57,7 +53,12 @@ def main(cfg : DictConfig) -> None:
                        seed=cfg.train.seed, 
                        vec_env_cls=DummyVecEnv,
                        env_kwargs = env_kwargs)
-
+    print('env 构建完成')
+    Algo = {
+        "sac": SAC,
+        "ddpg": DDPG,
+        "ppo": PPO,
+    }[cfg.train.algo]
     hyperparams = {
         "sac": dict(
             batch_size=cfg.train.batch_size,
@@ -68,27 +69,25 @@ def main(cfg : DictConfig) -> None:
             gamma=cfg.train.gamma,
         ),
         "ppo": dict(
-            batch_size=cfg.train.batch_size,
-            learning_rate=cfg.train.learning_rate,
+            # batch_size=cfg.train.batch_size,
+            # learning_rate=cfg.train.learning_rate,
             gamma=cfg.train.gamma,
-            device=cfg.train.device,
-            use_sde = cfg.train.use_sde,
+            # device=cfg.train.device,
+            # use_sde = cfg.train.use_sde,
             ent_coef = cfg.train.ent_coef
         )
     }[cfg.train.algo]
 
-    begin_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-    model = algo("CnnPolicy", env, verbose=1, tensorboard_log = tensorboard_log_path, **hyperparams,seed = seed)
+    model = Algo("CnnPolicy", env, verbose=1, tensorboard_log = tensorboard_log_path, **hyperparams)
+    # model = PPO("CnnPolicy", env, verbose=1,device='cuda',tensorboard_log='tensorboard')
     try:
+        print('============ Start Training ===================')
         model.learn(n_timesteps , tb_log_name = tensorboard_log_name )
     except KeyboardInterrupt:
         pass
     print('=====================================')
     print(f"Saving to {save_path}.zip")
     model.save(save_path)
-    end_time = time.strftime('%Y_%m_%d_%H_%M_%S', time.localtime())
-    print('Started at: ' + begin_time)
-    print('Ended at: ' + end_time)
     print('=====================================')
 
 
