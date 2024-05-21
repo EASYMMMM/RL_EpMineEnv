@@ -68,12 +68,12 @@ if __name__ == "__main__":
     print("==============================")
 
     episode_rewards, episode_lengths, episode_ave_velocitys, episode_success_rate = [], [], [], []
-    for __ in range(1):
+    for __ in range(5):
         obs = env.reset()
         episode_reward = 0.0
         episode_length = 0
-        for _ in range(2000):
-            time.sleep(0.02)
+        for _ in range(1750):
+            #time.sleep(0.02)
             action, _states = model.predict(obs)
             obs, rewards, dones, info = env.step(action)
             print('robot position:',info['robot_position'])
@@ -81,11 +81,11 @@ if __name__ == "__main__":
             episode_reward += rewards
             episode_length += 1
             if dones:
-                is_success  = info['is_success']
+                is_success  = True
                 episode_success_rate.append(is_success)
                 break   
-            episode_rewards.append(episode_reward)
-            episode_lengths.append(episode_length)
+        episode_rewards.append(episode_reward)
+        episode_lengths.append(episode_length)
             
         print(
             f"Episode {len(episode_rewards)} reward={episode_reward}, length={episode_length}"

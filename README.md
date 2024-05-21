@@ -49,9 +49,9 @@ python train.py env.only_image=False train.algo=sac train.n_timesteps=1500000
 ```
 训练结果、配置文件、模型等均会保存在`\runs`路径下。
 
-检查训练结果：
+检查训练结果，需要指定使用的算法，给出模型路径：
 ```
-python play.py --model RobotCv_20-22-21-06
+python play.py --algo ppo --save_path runs\\RobotCv_ppo_21-12-34-08\\RobotCv_ppo.zip
 ```
 
 ## 3. RL Env设置
