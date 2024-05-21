@@ -127,14 +127,14 @@ if __name__ == "__main__":
 
     episode_rewards, episode_lengths, episode_ave_velocitys, episode_success_rate = [], [], [], []
     all_robot_positions = []
-    for __ in range(2):
+    for __ in range(1):
         obs = env.reset()
         episode_reward = 0.0
         episode_length = 0
         robot_positions = []  # To store positions for each episode
         is_success = False
         for _ in range(950):
-            #time.sleep(0.02)
+            time.sleep(0.02)
             action, _states = model.predict(obs)
             obs, rewards, dones, info = env.step(action)
 
