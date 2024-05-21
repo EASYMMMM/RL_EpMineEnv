@@ -9,6 +9,29 @@ import numpy as np
 from stable_baselines3 import SAC, TD3, PPO
 import matplotlib.pyplot as plt
 
+def plot_robot_trajectory(positions, map_size=2.5):
+    """
+    Function to plot the robot's trajectory.
+    :param positions: List of robot positions (each position is a list of 3 coordinates).
+    :param map_size: Size of the map (default is 2.5x2.5).
+    """
+    plt.figure(figsize=(8, 8))
+    
+    # Extract x and z coordinates (2D plane)
+    x_coords = [pos[0] for pos in positions]
+    z_coords = [pos[2] for pos in positions]
+    
+    plt.plot(x_coords, z_coords, marker='o')
+    plt.xlim(-map_size/2, map_size/2)
+    plt.ylim(-map_size/2, map_size/2)
+    plt.axhline(0, color='gray', lw=0.5)
+    plt.axvline(0, color='gray', lw=0.5)
+    plt.title("Robot Trajectory")
+    plt.xlabel("X Coordinate")
+    plt.ylabel("Z Coordinate")
+    plt.grid(True)
+    plt.show()
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         "Enjoy an RL agent trained using Stable Baselines3"
@@ -68,15 +91,20 @@ if __name__ == "__main__":
     print("==============================")
 
     episode_rewards, episode_lengths, episode_ave_velocitys, episode_success_rate = [], [], [], []
+    all_robot_positions = []
     for __ in range(5):
         obs = env.reset()
         episode_reward = 0.0
         episode_length = 0
+        robot_positions = []  # To store positions for each episode
         for _ in range(1750):
             #time.sleep(0.02)
             action, _states = model.predict(obs)
             obs, rewards, dones, info = env.step(action)
+
+            robot_positions.append(info['robot_position'])
             print('robot position:',info['robot_position'])
+            # print('robot rotation', info["robot_rotation"])
             # print('catch state:',info['catch_state'])
             episode_reward += rewards
             episode_length += 1
@@ -86,6 +114,7 @@ if __name__ == "__main__":
                 break   
         episode_rewards.append(episode_reward)
         episode_lengths.append(episode_length)
+        all_robot_positions.append(robot_positions)
             
         print(
             f"Episode {len(episode_rewards)} reward={episode_reward}, length={episode_length}"
@@ -93,6 +122,7 @@ if __name__ == "__main__":
         print('success:',is_success)
         print('************************')
 
+    plot_robot_trajectory(all_robot_positions[0])
     mean_reward = np.mean(episode_rewards)
     std_reward = np.std(episode_rewards)
 
@@ -107,3 +137,4 @@ if __name__ == "__main__":
 
     # Close process
     env.close()
+

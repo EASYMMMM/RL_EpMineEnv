@@ -238,19 +238,20 @@ class EpMineEnv(gym.Env):
             obs = self.decoder_results(results=terminal_result)
             reward = self.get_dense_reward(results=terminal_result)
             self.current_results = terminal_result
-            robot_position = self.get_robot_pose(results=terminal_result)[0]
+            robot_position, robot_rotation = self.get_robot_pose(results=terminal_result)[0]
         else:
             # info = decision_result[behavior_name]
             obs = self.decoder_results(results=decision_result)
             reward = self.get_dense_reward(results=decision_result)
             self.current_results = decision_result
-            robot_position = self.get_robot_pose(results=decision_result)[0]
+            robot_position, robot_rotation = self.get_robot_pose(results=decision_result)[0]
         if self.step_num > self.max_episode_length:
             done = True
 #         else:
 #             if done:
 #                 reward += 10.0
         info["robot_position"] = robot_position
+        info["robot_rotation"] = robot_rotation
         info["mineral_position"] = self.get_mine_pose(self.current_results)
         info["catch_state"] = self.catch_state
         info["is_success"]  = self.is_success
