@@ -40,7 +40,8 @@ class EpMineEnv(gym.Env):
                  only_image: bool = True,
                  only_state: bool = False,
                  no_graph: bool = False,
-                 reward_scaling: bool = False):
+                 reward_scaling: bool = False,
+                 dist_reward: str = 'v0'):
         engine_configuration_channel = EngineConfigurationChannel()
         engine_configuration_channel.set_configuration_parameters(width=200, height=100,
                                                                       time_scale=time_scale)
@@ -61,6 +62,7 @@ class EpMineEnv(gym.Env):
         self.catch_state = 0
         self.is_success = False
         self.reward_scaling = reward_scaling
+        self.dist_reward = dist_reward
     
     def seed(self, sd=0):
         if self.env is not None:
@@ -145,7 +147,15 @@ class EpMineEnv(gym.Env):
     def get_reward(self, results):
         reward = results[TEAM_NAME].reward[AGENT_ID]
         return reward
-    
+
+    def get_dist_reward_v0(self,results):
+        # 到目标的距离奖励
+        current_dist = self.get_dist_to_mine(reuslts=results)
+        # print(self.last_dist - current_dist)
+        dist_reward = (self.last_dist - current_dist) 
+        self.last_dist = current_dist
+        return dist_reward
+     
     def get_dist_reward_v1(self,results):
         # 负距离表示
 
@@ -158,6 +168,7 @@ class EpMineEnv(gym.Env):
         if self.reward_scaling:
             dist_reward = (dist_reward+3)/3
         return dist_reward
+
 
     def get_dense_reward(self, results):
         # 任务完成奖励
@@ -172,7 +183,10 @@ class EpMineEnv(gym.Env):
         # dist_reward = (self.last_dist - current_dist) 
         # self.last_dist = current_dist
         
-        dist_reward = self.get_dist_reward_v1(results)
+        if self.dist_reward == 'v0':
+            dist_reward = self.get_dist_reward_v0(results)
+        if self.dist_reward == 'v1':
+            dist_reward = self.get_dist_reward_v1(results)
   
 
         R = final_reward + dist_reward

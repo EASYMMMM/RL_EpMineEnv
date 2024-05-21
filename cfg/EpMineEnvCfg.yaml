@@ -7,6 +7,7 @@ env:
     max_episode_steps: 1000
     only_image: True
     only_state: False
+    dist_reward: 'v0'
 
 train:
     algo: ppo   # [sac, ppo, ddpg]

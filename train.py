@@ -45,7 +45,8 @@ def main(cfg : DictConfig) -> None:
 
     env_kwargs = {  "only_image":cfg.env.only_image,
                     "only_state":cfg.env.only_state,
-                    "reward_scaling":cfg.env.reward_scaling,}
+                    "reward_scaling":cfg.env.reward_scaling,
+                    'dist_reward':cfg.env.dist_reward}
                    
     # Instantiate and wrap the environment
     env = make_vec_env(env_id,
