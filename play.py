@@ -8,25 +8,51 @@ import envs
 import numpy as np
 from stable_baselines3 import SAC, TD3, PPO
 import matplotlib.pyplot as plt
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
-def plot_robot_trajectory(positions, map_size=2.5):
+
+def plot_robot_trajectory(positions, map_size=5, step=2):
     """
     Function to plot the robot's trajectory.
     :param positions: List of robot positions (each position is a list of 3 coordinates).
     :param map_size: Size of the map (default is 2.5x2.5).
+    :param step: Step interval for plotting points to reduce clutter.
     """
+    if not positions:
+        print("No positions to plot.")
+        return
+    
     plt.figure(figsize=(8, 8))
     
-    # Extract x and z coordinates (2D plane)
-    x_coords = [pos[0] for pos in positions]
-    z_coords = [pos[2] for pos in positions]
+    # Extract x and z coordinates (2D plane) every 'step' points
+    x_coords = [pos[0] for i, pos in enumerate(positions) if pos is not None and i % step == 0]
+    z_coords = [pos[2] for i, pos in enumerate(positions) if pos is not None and i % step == 0]
     
-    plt.plot(x_coords, z_coords, marker='o')
+    if not x_coords or not z_coords:
+        print("Position data is empty.")
+        return
+
+    # Normalize the color values between 0 and 1 based on the sequence
+    colors = np.linspace(0, 1, len(x_coords))
+
+    # Create a line plot with a colormap
+    points = np.array([x_coords, z_coords]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    
+    from matplotlib.collections import LineCollection
+    lc = LineCollection(segments, cmap='viridis', norm=plt.Normalize(0, 1))
+    lc.set_array(colors)
+    lc.set_linewidth(2)
+    
+    plt.gca().add_collection(lc)
+    plt.colorbar(lc, label='Progression of Time')  # Add a color bar to show the progression
+    
     plt.xlim(-map_size/2, map_size/2)
     plt.ylim(-map_size/2, map_size/2)
     plt.axhline(0, color='gray', lw=0.5)
     plt.axvline(0, color='gray', lw=0.5)
-    plt.title("Robot Trajectory")
+    plt.title("Robot Trajectory with Direction Indication")
     plt.xlabel("X Coordinate")
     plt.ylabel("Z Coordinate")
     plt.grid(True)
@@ -45,6 +71,7 @@ if __name__ == "__main__":
         "--algo",
         help="algo",
         type=str,
+        default='ppo'
     )
     parser.add_argument(
         "--save_path",
@@ -89,21 +116,26 @@ if __name__ == "__main__":
     # print(f"gradient steps:{model.gradient_steps}")
     print("model path:"+save_path)
     print("==============================")
+    print('model policy:')
+    # 打印模型的网络结构
+    print(model.policy)
+    print("==============================")
 
     episode_rewards, episode_lengths, episode_ave_velocitys, episode_success_rate = [], [], [], []
     all_robot_positions = []
-    for __ in range(5):
+    for __ in range(2):
         obs = env.reset()
         episode_reward = 0.0
         episode_length = 0
         robot_positions = []  # To store positions for each episode
-        for _ in range(1750):
+        is_success = False
+        for _ in range(950):
             #time.sleep(0.02)
             action, _states = model.predict(obs)
             obs, rewards, dones, info = env.step(action)
 
             robot_positions.append(info['robot_position'])
-            print('robot position:',info['robot_position'])
+            # print('robot position:',info['robot_position'])
             # print('robot rotation', info["robot_rotation"])
             # print('catch state:',info['catch_state'])
             episode_reward += rewards
