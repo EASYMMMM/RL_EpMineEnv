@@ -237,3 +237,16 @@ python train.py train.algo=ppo env.reward_scaling=true env.dist_reward=v1 train.
 ```
 (还没跑，可能还有2.1，使用奖励函数v0测试一下)
 
+
+## 5 视频结果展示  
+  
+ 
+使用Exp1训练得到的模型绘制GIF：
+- 结果1及其对应曲线 
+ ![Reward3](result/show/robot_navigation_1.gif)
+ ![Reward3](result/show/trajectory_result_1.jpg)
+- 结果2及其对应曲线 
+ ![Reward3](result/show/robot_navigation_2.gif)
+ ![Reward3](result/show/trajectory_result_2.jpg)
+
+可以看到，Exp1训练得到的模型有能力找到目标点。当出生在目标点附近时，能够非常快速地靠近目标点；当出生离目标点较远时，需要经过短暂盘旋来抵达目标点。但是，由于缺乏角度指引，机器人只学会了背靠目标点。

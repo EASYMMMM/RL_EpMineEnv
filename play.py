@@ -9,8 +9,36 @@ import numpy as np
 from stable_baselines3 import SAC, TD3, PPO
 import matplotlib.pyplot as plt
 import os
+import imageio
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
+def make_gif(obs_sequence):
+    # Select every nth frame to reduce the total number of frames
+    nth_frame = 5  # Change this value to skip more frames if needed
+    selected_frames = obs_sequence[::nth_frame]
+
+    # Create and save a GIF
+    frames = []
+    i=1
+    for frame in selected_frames:
+        print(i)
+        i=i+1
+        fig, ax = plt.subplots()
+        ax.imshow(frame)
+        ax.axis('off')
+        fig.canvas.draw()
+        
+        # Convert the plot to a numpy array
+        image = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+        image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        
+        frames.append(image)
+        plt.close(fig)
+
+    # Save frames as a GIF
+    imageio.mimsave('robot_navigation.gif', frames, fps=10)
+
+    print("GIF created and saved as 'robot_navigation.gif'")
 
 def plot_robot_trajectory(positions, map_size=5, step=2, savepath='trajectory_result.jpg'):
     """
@@ -127,7 +155,10 @@ if __name__ == "__main__":
 
     episode_rewards, episode_lengths, episode_ave_velocitys, episode_success_rate = [], [], [], []
     all_robot_positions = []
+    obs = env.reset()
+    #time.sleep(3)
     for __ in range(1):
+        obs_sequence = [ ]
         obs = env.reset()
         episode_reward = 0.0
         episode_length = 0
@@ -137,7 +168,7 @@ if __name__ == "__main__":
             # time.sleep(0.02)
             action, _states = model.predict(obs)
             obs, rewards, dones, info = env.step(action)
-
+            obs_sequence.append(obs)
             robot_positions.append(info['robot_position'])
             # print('robot position:',info['robot_position'])
             # print('robot rotation', info["robot_rotation"])
@@ -159,6 +190,10 @@ if __name__ == "__main__":
         print('************************')
 
     plot_robot_trajectory(all_robot_positions[0])
+
+    obs_sequence = np.array(obs_sequence)
+    make_gif(obs_sequence)
+
     mean_reward = np.mean(episode_rewards)
     std_reward = np.std(episode_rewards)
 
