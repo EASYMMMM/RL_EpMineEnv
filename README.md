@@ -177,7 +177,9 @@ PPO SAC
 PPO + 奖励函数v0 + CnnPolicy
 即完全默认的设置。稀疏奖励得到的结果更差，因此不再展示。奖励函数v0即为上文说明的默认密集奖励。
 Exp0训练Reward曲线如下：
-![Reward](result\\RobotCv_baseline\\reward.png)
+
+![Reward1](result\\RobotCv_baseline\\reward.png)
+
 效果比较差，在训练途中完全崩溃。
 使用训练得到的模型控制机器人，轨迹为：
 <p align="center">
@@ -194,8 +196,9 @@ Exp0训练Reward曲线如下：
   python train.py train.algo=ppo env.reward_scaling=true env.dist_reward=v1 
   ```
   训练曲线：
-  ![Reward](result\\RobotCv_ppo_exp1\\reward.png)
-  结果：
+  ![Reward2](result\\RobotCv_ppo_exp1\\reward.png)
+
+  结果： 
   <p align="center">
     <img src="result\RobotCv_ppo_exp1\trajectory_result.jpg" alt="Image 1" width="45%" style="display: inline-block; margin-right: 5%;" />
     <img src="result\RobotCv_ppo_exp1\trajectory_result_2.jpg" alt="Image 2" width="45%" style="display: inline-block;" />
@@ -207,7 +210,9 @@ Exp0训练Reward曲线如下：
   ```
     ent_coef表示loss中的熵系数，用于鼓励模型探索。然而，相比于EXP1，EXP1.1在训练后期可能由于过度探索而导致训练严重不稳定。
   训练曲线：
-  ![Reward](result\\RobotCv_ppo_exp1.1\\reward.png)
+
+  ![Reward3](result\\RobotCv_ppo_exp1.1\\reward.png)
+  结果：  
   <p align="center">
     <img src="result\RobotCv_ppo_exp1.1\trajectory_result.jpg" alt="Image 1" width="45%" style="display: inline-block; margin-right: 5%;" />
     <img src="result\RobotCv_ppo_exp1.1\trajectory_result_2.jpg" alt="Image 2" width="45%" style="display: inline-block;" />
