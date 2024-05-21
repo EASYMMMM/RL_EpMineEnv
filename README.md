@@ -75,7 +75,7 @@ python play.py --algo ppo --save_path runs\\RobotCv_ppo_21-12-34-08\\RobotCv_ppo
 该奖励函数可在配置文件`.yaml`中更改。
 
 ### 3.4 强化学习算法
-PPO SAC
+本实验使用PPO进行训练。
 
 ### 3.5 网络设置
 给出两种Policy：
@@ -214,7 +214,7 @@ Exp0训练Reward曲线如下：
     </p>    
     整体来看有向中心运动的趋势，但轨迹非常混乱，控制不稳定。右图的起始点离目标点很近，却又向墙角绕了一大圈。
 
-- **EXP1.1:** PPO + 奖励函数v1 + CnnPolicy +    target_kl=1.5
+- **EXP1.2:** PPO + 奖励函数v1 + CnnPolicy +    target_kl=1.5
 
     target_kl（目标KL散度）是一个重要的超参数，用于控制策略更新过程中的步长。它的主要作用是防止策略更新过度，从而保持训练的稳定性。target_kl用于设定期望的KL散度（Kullback-Leibler散度）值，衡量新旧策略之间的差异。如果策略更新导致的KL散度超过了这个目标值，训练过程会采取措施进行调整，例如提前停止当前批次的优化或者缩小步长。
 
@@ -235,17 +235,19 @@ PPO + 修改后奖励函数v1 + CnnLstmPolicy
 ```
 python train.py train.algo=ppo env.reward_scaling=true env.dist_reward=v1 train.policy=CnnLstmPolicy
 ```
-(还没跑，可能还有2.1，使用奖励函数v0测试一下)
+ 
 
 
 ## 5 视频结果展示  
   
  
 使用Exp1训练得到的模型绘制GIF：
-- 结果1及其对应曲线 
+- 结果1及其对应曲线   
+  
  ![Reward3](result/show/robot_navigation_1.gif)
  ![Reward3](result/show/trajectory_result_1.jpg)
-- 结果2及其对应曲线 
+- 结果2及其对应曲线   
+  
  ![Reward3](result/show/robot_navigation_2.gif)
  ![Reward3](result/show/trajectory_result_2.jpg)
 
