@@ -178,7 +178,7 @@ PPO + 奖励函数v0 + CnnPolicy
 即完全默认的设置。稀疏奖励得到的结果更差，因此不再展示。奖励函数v0即为上文说明的默认密集奖励。
 Exp0训练Reward曲线如下：
 
-![Reward1](result\\RobotCv_baseline\\reward.png)
+![Reward1](result/RobotCv_baseline/reward.png)
 
 效果比较差，在训练途中完全崩溃。
 使用训练得到的模型控制机器人，轨迹为：
