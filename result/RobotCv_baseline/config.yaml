@@ -1,0 +1,18 @@
+env:
+  env_id: EpMineEnv-v0
+  env_num: 4
+  exp_name: RobotCv
+  reward_scaling: true
+  max_episode_steps: 1800
+  only_image: true
+  only_state: false
+train:
+  algo: ppo
+  n_timesteps: 1000000
+  batch_size: 256
+  gamma: 0.99
+  learning_rate: 0.0003
+  device: cuda
+  seed: 0
+  use_sde: false
+  ent_coef: 0.0
