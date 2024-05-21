@@ -40,7 +40,7 @@ model = PPO.load(model_path, env=env, tensorboard_log=log_dir,)
 
 
 # 继续训练
-model.learn(total_timesteps=1000000, tb_log_name='RobotCv_ppo_2', reset_num_timesteps=False)
+model.learn(total_timesteps=1000000, tb_log_name='RobotCv_ppo_2',)
 print('=====================================')
 print(f"Saving to {save_path}.zip")
 model.save(save_path)

@@ -214,10 +214,21 @@ Exp0训练Reward曲线如下：
     </p>    
     整体来看有向中心运动的趋势，但轨迹非常混乱，控制不稳定。右图的起始点离目标点很近，却又向墙角绕了一大圈。
 
-(可能还有Exp1.2，添加target_kl参数来避免曲线下跌)
-```
-python train.py train.algo=ppo env.reward_scaling=true env.dist_reward=v1 train.target_kl=1.5
-```
+- **EXP1.1:** PPO + 奖励函数v1 + CnnPolicy +    target_kl=1.5
+
+    target_kl（目标KL散度）是一个重要的超参数，用于控制策略更新过程中的步长。它的主要作用是防止策略更新过度，从而保持训练的稳定性。target_kl用于设定期望的KL散度（Kullback-Leibler散度）值，衡量新旧策略之间的差异。如果策略更新导致的KL散度超过了这个目标值，训练过程会采取措施进行调整，例如提前停止当前批次的优化或者缩小步长。
+
+    我们希望通过引入该参数，来减小训练过程中出现的不稳定现象（如reward曲线明显下跌）。target_kl的调参比较困难，经过预试验，选择`target_kl=1.5`。
+    ```
+    python train.py train.algo=ppo env.reward_scaling=true env.dist_reward=v1 train.target_kl=1.5
+    ```
+     ![Reward3](result/RobotCv_ppo_exp1.2/result.png)
+    <p align="center">
+    <img src="result\RobotCv_ppo_exp1.2\trajectory_result.jpg" alt="Image 1" width="45%" style="display: inline-block; margin-right: 5%;" />
+    <img src="result\RobotCv_ppo_exp1.2\trajectory_result_2.jpg" alt="Image 2" width="45%" style="display: inline-block;" />
+    </p> 
+    然而，结果并不如预期，训练效果反而更差。从演示结果来看，智能体似乎最终并没有学到任何有用的策略。只是在盲目地撞墙，甚至并没有向中心移动的趋势。
+
 
 ### 4.3 Exp2: LSTM
 PPO + 修改后奖励函数v1 + CnnLstmPolicy

@@ -89,9 +89,9 @@ if __name__ == "__main__":
     # 环境名
     env_id = "EpMineEnv-v0"
 
-    # env_kwargs = {  "only_image":cfg.env.only_image,
-    #                 "only_state":cfg.env.only_state,
-    #                 "max_episode_steps":cfg.env.max_episode_steps}
+    env_kwargs = {   "reward_scaling": True,
+                    'dist_reward':'v1',}
+                     
     
     # Create an env similar to the training env
     env = gym.make(env_id) 
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         robot_positions = []  # To store positions for each episode
         is_success = False
         for _ in range(950):
-            time.sleep(0.02)
+            # time.sleep(0.02)
             action, _states = model.predict(obs)
             obs, rewards, dones, info = env.step(action)
 
