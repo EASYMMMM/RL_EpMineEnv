@@ -157,6 +157,7 @@ class EpMineEnv(gym.Env):
 
         if self.reward_scaling:
             dist_reward = (dist_reward+3)/3
+        return dist_reward
 
     def get_dense_reward(self, results):
         # 任务完成奖励
