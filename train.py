@@ -20,7 +20,8 @@ def main(cfg : DictConfig) -> None:
     from copy import deepcopy
     from typing import Any, Callable, List, Optional, Sequence, Type, Union
     from stable_baselines3.common.vec_env.base_vec_env import VecEnv, VecEnvIndices, VecEnvObs, VecEnvStepReturn
-
+    import os
+    os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
     print(OmegaConf.to_yaml(cfg)) # 打印配置
 
