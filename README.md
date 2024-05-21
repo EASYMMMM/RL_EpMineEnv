@@ -67,25 +67,92 @@ cv：机器人视觉信号
 state：机器人信息[ 四元数 速度 全局位置 ...]
 原1 采用State 
 原2 采用cv
-修改后 cv信号+机器人速度+朝向（不给全局位置）
+~~修改后 cv信号+机器人速度+朝向（不给全局位置）~~
+我们按照作业要求，仅用机器人视觉信号作为观测输入。
 
 ### 3.2 动作空间
 
 
 ### 3.3 奖励函数
-原1 稀疏奖励函数（任务成功+10）
-原2 稠密奖励函数（稀疏+相对距离）
-修改后 xxx奖励函数
+原 稀疏奖励函数（任务成功+10） 未使用
+原 稠密奖励函数（稀疏+相对距离）
+在我们的项目中，定义了两个稠密奖励：
+- v0: 即原稠密奖励函数。计算机器人到目标矿石的距离，并进一步计算机器人到目标矿石的移动速度。以速度作为奖励。
+```python
+    def get_dist_reward_v0(self,results):
+        # 到目标的距离奖励
+        current_dist = self.get_dist_to_mine(reuslts=results)
+        # print(self.last_dist - current_dist)
+        dist_reward = (self.last_dist - current_dist) 
+        self.last_dist = current_dist
+        return dist_reward
+```
+由于速度值较小，该奖励值也较小（0.000x的量级）。为了提高训练稳定性，我们希望对奖励进行缩放（reward scaling），减小其方差。然而该速度值太小，经尝试，缩放效果不好。
+
+于是，设计新的奖励函数，惩罚机器人到矿石的距离，不再计算速度。并进行缩放。
+- v1:
+```python
+    def get_dist_reward_v1(self,results):
+        # 负距离表示
+        current_dist = self.get_dist_to_mine(reuslts=results)
+        # print(self.last_dist - current_dist)
+        dist_reward = (- current_dist) 
+        self.last_dist = current_dist
+
+        if self.reward_scaling:
+            dist_reward = (dist_reward+3)/3
+        return dist_reward
+```
+该奖励函数可在配置文件`.yaml`中更改。
 
 ### 3.4 强化学习算法
 PPO SAC
 
+### 3.5 网络设置
+给出两种Policy：
+- CnnPolicy: 这是stable-baselines3给出的带有卷积网络的默认策略。其结构为：
+    ```
+    ActorCriticCnnPolicy(
+    (features_extractor): NatureCNN(
+        (cnn): Sequential(
+        (0): Conv2d(3, 32, kernel_size=(8, 8), stride=(4, 4))
+        (1): ReLU()
+        (2): Conv2d(32, 64, kernel_size=(4, 4), stride=(2, 2))
+        (3): ReLU()
+        (4): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1))
+        (5): ReLU()
+        (6): Flatten(start_dim=1, end_dim=-1)
+        )
+        (linear): Sequential(
+        (0): Linear(in_features=9216, out_features=512, bias=True)
+        (1): ReLU()
+        )
+    )
+    (mlp_extractor): MlpExtractor(
+        (shared_net): Sequential()
+        (policy_net): Sequential()
+        (value_net): Sequential()
+    )
+    (action_net): Linear(in_features=512, out_features=3, bias=True)
+    (value_net): Linear(in_features=512, out_features=1, bias=True)
+    )
+    ```
+然而，由于观测空间仅有视觉输入，缺乏机器人速度、加速度、全局位置等信息，导致任务信息缺失（POMDP）。我们使用LSTM处理特征，从而提供更全面的时序信息。
+- CnnLstmPolicy: 定义在`cnnlstm_policy.py`中。
+
 ## 4. 实验设置及结果
 
-### 4.1 Baseline
-PPO + 原稠密奖励函数 + 视觉
+### 4.1 Exp0：Baseline
+PPO + 奖励函数v0 + CnnPolicy
 
-### 4.2 提出的方法
-SAC + 修改后奖励函数 + 修改后状态空间 + trick
+### 4.2 Exp1：更改奖励函数
+PPO + 修改后奖励函数v1 + CnnPolicy
+(可能还有Exp1.1，添加target_kl参数来避免曲线下跌)
 
-### 4.n 消融实验
+### 4.3 Exp2: LSTM
+PPO + 修改后奖励函数v1 + CnnLstmPolicy
+```
+python train.py train.algo=ppo env.reward_scaling=true env.dist_reward=v1 train.policy=CnnLstmPolicy
+```
+(还没跑，可能还有2.1，使用奖励函数v0测试一下)
+
