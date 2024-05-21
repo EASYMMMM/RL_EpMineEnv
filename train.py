@@ -28,7 +28,7 @@ def main(cfg : DictConfig) -> None:
     exp_name = cfg.env.exp_name   
 
     # dump config dict
-    experiment_dir = os.path.join('runs', exp_name + 
+    experiment_dir = os.path.join('runs', exp_name +'_' + algo + 
     '_{date:%d-%H-%M-%S}'.format(date=datetime.now()))
     os.makedirs(experiment_dir, exist_ok=True)
     with open(os.path.join(experiment_dir, 'config.yaml'), 'w') as f:
@@ -45,7 +45,7 @@ def main(cfg : DictConfig) -> None:
 
     env_kwargs = {  "only_image":cfg.env.only_image,
                     "only_state":cfg.env.only_state,
-                    "max_episode_steps":cfg.env.max_episode_steps}
+                    "reward_scaling":cfg.env.reward_scaling,}
                    
     # Instantiate and wrap the environment
     env = make_vec_env(env_id,
@@ -72,7 +72,7 @@ def main(cfg : DictConfig) -> None:
             # batch_size=cfg.train.batch_size,
             # learning_rate=cfg.train.learning_rate,
             gamma=cfg.train.gamma,
-            # device=cfg.train.device,
+            device=cfg.train.device,
             # use_sde = cfg.train.use_sde,
             ent_coef = cfg.train.ent_coef
         )

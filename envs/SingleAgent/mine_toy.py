@@ -39,7 +39,8 @@ class EpMineEnv(gym.Env):
                  max_episode_steps: int = 1000,
                  only_image: bool = True,
                  only_state: bool = False,
-                 no_graph: bool = False):
+                 no_graph: bool = False,
+                 reward_scaling: bool = False):
         engine_configuration_channel = EngineConfigurationChannel()
         engine_configuration_channel.set_configuration_parameters(width=200, height=100,
                                                                       time_scale=time_scale)
@@ -58,6 +59,8 @@ class EpMineEnv(gym.Env):
         self.last_dist = 0.0
         self.current_results = None
         self.catch_state = 0
+        self.is_success = False
+        self.reward_scaling = reward_scaling
     
     def seed(self, sd=0):
         if self.env is not None:
@@ -116,6 +119,7 @@ class EpMineEnv(gym.Env):
         return position, rotation
     
     def get_mine_pose(self, results):
+        # 矿石位置
         org_obs = results[TEAM_NAME].obs
         mineral_pose = org_obs[1][AGENT_ID][10:13]
         return mineral_pose
@@ -123,7 +127,7 @@ class EpMineEnv(gym.Env):
     def get_dist_to_mine(self, reuslts):
         mine_pose = self.get_mine_pose(results=reuslts)
         robot_pose = self.get_robot_pose(results=reuslts)[0]
-        dist = np.sqrt(robot_pose[0] ** 2 + robot_pose[2] ** 2)
+        dist = np.sqrt( (robot_pose[0] - mine_pose[0]) ** 2 + (robot_pose[2] - mine_pose[2])** 2)
         return dist
     
     def reset(self, seed=None, options=None):
@@ -135,23 +139,45 @@ class EpMineEnv(gym.Env):
         self.env.reset()
         obs, _, _, _ = self._step()
         self.last_dist = self.get_dist_to_mine(self.current_results)
+        self.is_success = False
         return obs
     
     def get_reward(self, results):
         reward = results[TEAM_NAME].reward[AGENT_ID]
         return reward
     
-    def get_dense_reward(self, results):
-        final_reward = results[TEAM_NAME].reward[AGENT_ID]
-        # print(final_reward)
+    def get_dist_reward_v1(self,results):
+        # 负距离表示
+
+        # 到目标的距离奖励
         current_dist = self.get_dist_to_mine(reuslts=results)
         # print(self.last_dist - current_dist)
-        delta_r = (self.last_dist - current_dist) 
-        final_reward += delta_r
-        # if current_dist < 0.5:
-        #     final_reward += 1.0
+        dist_reward = (- current_dist) 
         self.last_dist = current_dist
-        return final_reward
+
+        if self.reward_scaling:
+            dist_reward = (dist_reward+3)/3
+
+    def get_dense_reward(self, results):
+        # 任务完成奖励
+        final_reward = results[TEAM_NAME].reward[AGENT_ID]
+        if final_reward == 10:
+            self.is_success = True
+        # print(final_reward)
+
+        # 到目标的距离奖励
+        # current_dist = self.get_dist_to_mine(reuslts=results)
+        # # print(self.last_dist - current_dist)
+        # dist_reward = (self.last_dist - current_dist) 
+        # self.last_dist = current_dist
+        
+        dist_reward = self.get_dist_reward_v1(results)
+  
+
+        R = final_reward + dist_reward
+
+
+        return R
     
     def step(self, action):
         # action: [vy, vx, vw, arm_ang, catching]
@@ -210,7 +236,9 @@ class EpMineEnv(gym.Env):
 #             if done:
 #                 reward += 10.0
         info["robot_position"] = robot_position
-        
+        info["mineral_position"] = self.get_mine_pose(self.current_results)
+        info["catch_state"] = self.catch_state
+        info["is_success"]  = self.is_success
         return obs, reward, done, info
 
 

@@ -3,8 +3,8 @@ env:
     env_id: 'EpMineEnv-v0' # 环境名
     env_num: 4  # 环境数
     exp_name: 'RobotCv'
-    reward_scaling: True
-    max_episode_steps: 1800
+    reward_scaling: False
+    max_episode_steps: 1000
     only_image: True
     only_state: False
 
@@ -17,4 +17,4 @@ train:
     device: 'cuda'
     seed: 0
     use_sde: False
-    ent_coef: 0.0
+    ent_coef: 0.1

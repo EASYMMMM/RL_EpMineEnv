@@ -40,6 +40,6 @@ if __name__ == "__main__":
     model.learn(total_timesteps=1e6)
 
     obs = env.reset()
-    for _ in range(1000):
+    for _ in range(2000):
         action, _states = model.predict(obs)
         obs, rewards, dones, info = env.step(action)
