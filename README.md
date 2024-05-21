@@ -37,46 +37,41 @@ python play.py --algo ppo --save_path runs\\RobotCv_ppo_21-12-34-08\\RobotCv_ppo
 
 ## 3. RL Env设置
 ### 3.1 观测空间
-cv：机器人视觉信号
-state：机器人信息[ 四元数 速度 全局位置 ...]
-原1 采用State 
-原2 采用cv
-~~修改后 cv信号+机器人速度+朝向（不给全局位置）~~
-我们按照作业要求，仅用机器人视觉信号作为观测输入。
+我们仅用机器人视觉信号作为观测输入。
+即 `only_img=True`，`only_state=False`。
 
 ### 3.2 动作空间
 
 
 ### 3.3 奖励函数
-原 稀疏奖励函数（任务成功+10） 未使用
-原 稠密奖励函数（稀疏+相对距离）
+原文提供了稀疏奖励函数（任务成功+10），由于纯稀疏奖励效果较差，本实验未使用纯稀疏奖励。  
 在我们的项目中，定义了两个稠密奖励：
-- v0: 即原稠密奖励函数。计算机器人到目标矿石的距离，并进一步计算机器人到目标矿石的移动速度。以速度作为奖励。
-```python
-    def get_dist_reward_v0(self,results):
-        # 到目标的距离奖励
-        current_dist = self.get_dist_to_mine(reuslts=results)
-        # print(self.last_dist - current_dist)
-        dist_reward = (self.last_dist - current_dist) 
-        self.last_dist = current_dist
-        return dist_reward
-```
-由于速度值较小，该奖励值也较小（0.000x的量级）。为了提高训练稳定性，我们希望对奖励进行缩放（reward scaling），减小其方差。然而该速度值太小，经尝试，缩放效果不好。
+- **v0**: 即原稠密奖励函数。计算机器人到目标矿石的距离，并进一步计算机器人到目标矿石的移动速度。以速度作为奖励。
+    ```python
+        def get_dist_reward_v0(self,results):
+            # 到目标的距离奖励
+            current_dist = self.get_dist_to_mine(reuslts=results)
+            # print(self.last_dist - current_dist)
+            dist_reward = (self.last_dist - current_dist) 
+            self.last_dist = current_dist
+            return dist_reward
+    ```
+由于速度值较小，该奖励数值也较小。为了提高训练稳定性，我们希望对奖励进行缩放（reward scaling），减小其方差。然而该速度值太小，经尝试，缩放效果不好。
 
 于是，设计新的奖励函数，惩罚机器人到矿石的距离，不再计算速度。并进行缩放。
-- v1:
-```python
-    def get_dist_reward_v1(self,results):
-        # 负距离表示
-        current_dist = self.get_dist_to_mine(reuslts=results)
-        # print(self.last_dist - current_dist)
-        dist_reward = (- current_dist) 
-        self.last_dist = current_dist
+- **v1**: 
+    ```python
+        def get_dist_reward_v1(self,results):
+            # 负距离表示
+            current_dist = self.get_dist_to_mine(reuslts=results)
+            # print(self.last_dist - current_dist)
+            dist_reward = (- current_dist) 
+            self.last_dist = current_dist
 
-        if self.reward_scaling:
-            dist_reward = (dist_reward+3)/3
-        return dist_reward
-```
+            if self.reward_scaling:
+                dist_reward = (dist_reward+3)/3
+            return dist_reward
+    ```
 该奖励函数可在配置文件`.yaml`中更改。
 
 ### 3.4 强化学习算法
