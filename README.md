@@ -10,33 +10,7 @@
 
 对环境的测试可以参考`envs/SingleAgent/mine_toy.py`文件。
 
-## 2. 环境配置
-
-
-
-```
-conda create -p python3.8 mine_env
-conda activate mine_env
-pip install mlagents-envs gym opencv-python==4.5.5.64 stablebaselin3==1.5.0
-```
-
-根据系统配置和[官方文档](https://pytorch.org/get-started/locally/)安装pytorch。
-
-
-### 关闭可视化界面
-mlagents-envs提供了`no-graphics`仿真模式，但是在该模式下图像不会被正常渲染。
-这里我们提供了一种通过修改mlagents-envs源码的方式，让它们支持不显示可视化窗口。
-具体的，找到当前python环境的库安装路径，并找到`site-packages/mlagents_envs/environment.py`，将第272行
-`args += ["-nographcis", "-batchmode"]` 修改为 `args += ["-batchmode"]`。
-
-然后再代码（`envs/SingleAgent/mine_toy.py`）中 `no_graph = True`。
-
-需要注意的是，上述修改方式虽然支持关闭可视化窗口，但是在服务器（无显示）端仅修改上述代码而不适用docker的情况下，仍然不能正常渲染图像。
-
-***警告***：上述代码涉及修改mlagents-envs源码，请谨慎使用。
-
-
-### 训练
+## 2. 训练
 安装'hydra'和'Omegacfg'来配置实验参数。
 ``` 
 pip install hydra-core --upgrade
@@ -110,7 +84,7 @@ PPO SAC
 
 ### 3.5 网络设置
 给出两种Policy：
-- CnnPolicy: 这是stable-baselines3给出的带有卷积网络的默认策略。其结构为：
+- **CnnPolicy**: 这是stable-baselines3给出的带有卷积网络的默认策略。其结构为：
     ```
     ActorCriticCnnPolicy(
     (features_extractor): NatureCNN(
@@ -137,25 +111,108 @@ PPO SAC
     (value_net): Linear(in_features=512, out_features=1, bias=True)
     )
     ```
-然而，由于观测空间仅有视觉输入，缺乏机器人速度、加速度、全局位置等信息，导致任务信息缺失（POMDP）。我们使用LSTM处理特征，从而提供更全面的时序信息。
-- CnnLstmPolicy: 定义在`cnnlstm_policy.py`中。
+    然而，由于观测空间仅有视觉输入，缺乏机器人速度、加速度、全局位置等信息，导致任务信息缺失（POMDP）。我们在后续实验中使用LSTM处理特征，从而提供更全面的时序信息。
+- **CnnLstmPolicy**: 使用的是`sb3-contrib`库中的`RecurrentPPO`进行训练，其`CnnLstmPolicy`结构如下：
+  ```
+    RecurrentActorCriticCnnPolicy(
+    (features_extractor): NatureCNN(
+        (cnn): Sequential(
+        (0): Conv2d(3, 32, kernel_size=(8, 8), stride=(4, 4))     
+        (1): ReLU()
+        (2): Conv2d(32, 64, kernel_size=(4, 4), stride=(2, 2))    
+        (3): ReLU()
+        (4): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1))    
+        (5): ReLU()
+        (6): Flatten(start_dim=1, end_dim=-1)
+        )
+        (linear): Sequential(
+        (0): Linear(in_features=9216, out_features=512, bias=True)
+        (1): ReLU()
+        )
+    )
+    (pi_features_extractor): NatureCNN(
+        (cnn): Sequential(
+        (0): Conv2d(3, 32, kernel_size=(8, 8), stride=(4, 4))
+        (1): ReLU()
+        (2): Conv2d(32, 64, kernel_size=(4, 4), stride=(2, 2))
+        (3): ReLU()
+        (4): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1))
+        (5): ReLU()
+        (6): Flatten(start_dim=1, end_dim=-1)
+        )
+        (linear): Sequential(
+        (0): Linear(in_features=9216, out_features=512, bias=True)
+        (1): ReLU()
+        )
+    )
+    (vf_features_extractor): NatureCNN(
+        (cnn): Sequential(
+        (0): Conv2d(3, 32, kernel_size=(8, 8), stride=(4, 4))
+        (1): ReLU()
+        (2): Conv2d(32, 64, kernel_size=(4, 4), stride=(2, 2))
+        (3): ReLU()
+        (4): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1))
+        (5): ReLU()
+        (6): Flatten(start_dim=1, end_dim=-1)
+        )
+        (linear): Sequential(
+        (0): Linear(in_features=9216, out_features=512, bias=True)
+        (1): ReLU()
+        )
+    )
+    (mlp_extractor): MlpExtractor(
+        (policy_net): Sequential()
+        (value_net): Sequential()
+    )
+    (action_net): Linear(in_features=256, out_features=3, bias=True)
+    (value_net): Linear(in_features=256, out_features=1, bias=True)
+    (lstm_actor): LSTM(512, 256)
+    (lstm_critic): LSTM(512, 256)
+    )
+  ```
 
 ## 4. 实验设置及结果
 
 ### 4.1 Exp0：Baseline
 PPO + 奖励函数v0 + CnnPolicy
+即完全默认的设置。稀疏奖励得到的结果更差，因此不再展示。奖励函数v0即为上文说明的默认密集奖励。
+Exp0训练Reward曲线如下：
+![Reward](result\RobotCv_baseline\reward.png)
+效果比较差，在训练途中完全崩溃。
+使用训练得到的模型控制机器人，轨迹为：
+<p align="center">
+    <img src="result\RobotCv_baseline\trajectory_result.jpg" alt="Image 1" width="45%" style="display: inline-block; margin-right: 5%;" />
+    <img src="result\RobotCv_baseline\trajectory_result_2.jpg" alt="Image 2" width="45%" style="display: inline-block;" />
+</p>
+机器人似乎没学到任何策略，基本不进行运动。
+
 
 ### 4.2 Exp1：更改奖励函数
 
-- **EXP1:** PPO + 修改后奖励函数v1 + CnnPolicy
+- **EXP1:** PPO + 奖励函数v1 + CnnPolicy
   ```
   python train.py train.algo=ppo env.reward_scaling=true env.dist_reward=v1 
   ```
-- **EXP1.1:** PPO + 修改后奖励函数v1 + CnnPolicy + ent_coef=0.1
+  训练曲线：
+  ![Reward](result\RobotCv_ppo_exp1\reward.png)
+  结果：
+  <p align="center">
+    <img src="result\RobotCv_ppo_exp1\trajectory_result.jpg" alt="Image 1" width="45%" style="display: inline-block; margin-right: 5%;" />
+    <img src="result\RobotCv_ppo_exp1\trajectory_result_2.jpg" alt="Image 2" width="45%" style="display: inline-block;" />
+    </p>
+    控制效果相对比较好，运动稳定连贯，但是由于没加朝向判定，容易在目标点附近绕圈。右图得到的结果相对出色。
+- **EXP1.1:** PPO + 奖励函数v1 + CnnPolicy +    ent_coef=0.1
   ```
   python train.py train.algo=ppo env.reward_scaling=true env.dist_reward=v1 train.ent_coef=0.1
   ```
-  ent_coef表示loss中的熵系数，用于鼓励模型探索。然而，相比于EXP1，EXP1.1在训练后期可能由于过度探索而导致训练严重不稳定。
+    ent_coef表示loss中的熵系数，用于鼓励模型探索。然而，相比于EXP1，EXP1.1在训练后期可能由于过度探索而导致训练严重不稳定。
+  训练曲线：
+  ![Reward](result\RobotCv_ppo_exp1.1\reward.png)
+  <p align="center">
+    <img src="result\RobotCv_ppo_exp1.1\trajectory_result.jpg" alt="Image 1" width="45%" style="display: inline-block; margin-right: 5%;" />
+    <img src="result\RobotCv_ppo_exp1.1\trajectory_result_2.jpg" alt="Image 2" width="45%" style="display: inline-block;" />
+    </p>    
+    整体来看有向中心运动的趋势，但轨迹非常混乱，控制不稳定。右图的起始点离目标点很近，却又向墙角绕了一大圈。
 
 (可能还有Exp1.2，添加target_kl参数来避免曲线下跌)
 ```
