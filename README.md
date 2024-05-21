@@ -64,6 +64,9 @@ chmod +x drl.x86_64
 
 ### 训练
 安装'hydra'和'Omegacfg'来配置实验参数。
+``` 
+pip install hydra-core --upgrade
+```
 原训练：
 ```
 python train_ppo.py
