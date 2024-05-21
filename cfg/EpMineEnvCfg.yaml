@@ -8,6 +8,7 @@ env:
     only_image: True 
     only_state: False
     dist_reward: 'v0' # 采用何种奖励函数
+    no_graph: False
 
 
 train:
@@ -21,4 +22,4 @@ train:
     seed: 0
     use_sde: False
     ent_coef: 0.0
-    target_kl: 1000  # 该参数取极大值时无效
+    target_kl: 100000  # 该参数取极大值时无效

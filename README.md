@@ -146,8 +146,21 @@ PPO SAC
 PPO + 奖励函数v0 + CnnPolicy
 
 ### 4.2 Exp1：更改奖励函数
-PPO + 修改后奖励函数v1 + CnnPolicy
-(可能还有Exp1.1，添加target_kl参数来避免曲线下跌)
+
+- **EXP1:** PPO + 修改后奖励函数v1 + CnnPolicy
+  ```
+  python train.py train.algo=ppo env.reward_scaling=true env.dist_reward=v1 
+  ```
+- **EXP1.1:** PPO + 修改后奖励函数v1 + CnnPolicy + ent_coef=0.1
+  ```
+  python train.py train.algo=ppo env.reward_scaling=true env.dist_reward=v1 train.ent_coef=0.1
+  ```
+  ent_coef表示loss中的熵系数，用于鼓励模型探索。然而，相比于EXP1，EXP1.1在训练后期可能由于过度探索而导致训练严重不稳定。
+
+(可能还有Exp1.2，添加target_kl参数来避免曲线下跌)
+```
+python train.py train.algo=ppo env.reward_scaling=true env.dist_reward=v1 train.target_kl=1.5 env.no_graph=True
+```
 
 ### 4.3 Exp2: LSTM
 PPO + 修改后奖励函数v1 + CnnLstmPolicy
