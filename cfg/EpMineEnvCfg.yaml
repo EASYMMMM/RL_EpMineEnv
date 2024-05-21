@@ -2,15 +2,17 @@
 env:
     env_id: 'EpMineEnv-v0' # 环境名
     env_num: 4  # 环境数
-    exp_name: 'RobotCv'
-    reward_scaling: False
-    max_episode_steps: 1000
-    only_image: True
+    exp_name: 'RobotCv' # 实验名
+    reward_scaling: False # 奖励缩放
+    max_episode_steps: 1000 
+    only_image: True 
     only_state: False
-    dist_reward: 'v0'
+    dist_reward: 'v0' # 采用何种奖励函数
+
 
 train:
     algo: ppo   # [sac, ppo, ddpg]
+    policy: CnnPolicy # [CnnPolicy, CnnLstmPolicy]
     n_timesteps: 1000000
     batch_size: 256
     gamma: 0.99
@@ -18,4 +20,5 @@ train:
     device: 'cuda'
     seed: 0
     use_sde: False
-    ent_coef: 0.1
+    ent_coef: 0.0
+    target_kl: 1000  # 该参数取极大值时无效

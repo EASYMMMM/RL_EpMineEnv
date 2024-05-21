@@ -15,7 +15,8 @@ def main(cfg : DictConfig) -> None:
     from stable_baselines3.common.env_util import make_vec_env
     from stable_baselines3.common.utils import set_random_seed
     from envs.SingleAgent.mine_toy import EpMineEnv
-    
+    from cnnlstm_policy import CustomLSTMPolicy
+
     print(OmegaConf.to_yaml(cfg)) # 打印配置
 
     # 随机种子
@@ -55,6 +56,7 @@ def main(cfg : DictConfig) -> None:
                        vec_env_cls=DummyVecEnv,
                        env_kwargs = env_kwargs)
     print('env 构建完成')
+
     Algo = {
         "sac": SAC,
         "ddpg": DDPG,
@@ -75,11 +77,17 @@ def main(cfg : DictConfig) -> None:
             gamma=cfg.train.gamma,
             device=cfg.train.device,
             # use_sde = cfg.train.use_sde,
-            ent_coef = cfg.train.ent_coef
+            ent_coef = cfg.train.ent_coef,
+            target_kl = cfg.train.target_kl
         )
     }[cfg.train.algo]
 
-    model = Algo("CnnPolicy", env, verbose=1, tensorboard_log = tensorboard_log_path, **hyperparams)
+    Policy = {
+        "CnnPolicy": "CnnPolicy",
+        "CnnLstmPolicy": CustomLSTMPolicy,
+    }[cfg.train.policy]
+
+    model = Algo(Policy, env, verbose=1, tensorboard_log = tensorboard_log_path, **hyperparams)
     # model = PPO("CnnPolicy", env, verbose=1,device='cuda',tensorboard_log='tensorboard')
     try:
         print('============ Start Training ===================')
