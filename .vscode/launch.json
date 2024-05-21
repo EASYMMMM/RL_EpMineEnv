@@ -14,7 +14,7 @@
                 "--algo",
                 "ppo",
                 "--save_path",
-                "runs\\RobotCv_20-22-21-06\\RobotCv_ppo.zip"
+                "runs\\RobotCv_baseline\\RobotCv_ppo.zip"
             ],
         }
     ]

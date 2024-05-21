@@ -15,7 +15,8 @@ def main(cfg : DictConfig) -> None:
     from stable_baselines3.common.env_util import make_vec_env
     from stable_baselines3.common.utils import set_random_seed
     from envs.SingleAgent.mine_toy import EpMineEnv
-    from cnnlstm_policy import CustomLSTMPolicy
+    from cnnlstm_policy import CnnLSTMPolicy
+    
 
     print(OmegaConf.to_yaml(cfg)) # 打印配置
 
@@ -85,11 +86,19 @@ def main(cfg : DictConfig) -> None:
 
     Policy = {
         "CnnPolicy": "CnnPolicy",
-        "CnnLstmPolicy": CustomLSTMPolicy,
+        "CnnLstmPolicy": CnnLSTMPolicy,
     }[cfg.train.policy]
+
 
     model = Algo(Policy, env, verbose=1, tensorboard_log = tensorboard_log_path, **hyperparams)
     # model = PPO("CnnPolicy", env, verbose=1,device='cuda',tensorboard_log='tensorboard')
+    
+    print("==============================")
+    print('model policy:')
+    # 打印模型的网络结构
+    print(model.policy)
+    print("==============================")
+
     try:
         print('============ Start Training ===================')
         model.learn(n_timesteps , tb_log_name = tensorboard_log_name )

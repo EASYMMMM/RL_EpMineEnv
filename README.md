@@ -159,7 +159,7 @@ PPO + 奖励函数v0 + CnnPolicy
 
 (可能还有Exp1.2，添加target_kl参数来避免曲线下跌)
 ```
-python train.py train.algo=ppo env.reward_scaling=true env.dist_reward=v1 train.target_kl=1.5 env.no_graph=True
+python train.py train.algo=ppo env.reward_scaling=true env.dist_reward=v1 train.target_kl=1.5
 ```
 
 ### 4.3 Exp2: LSTM
