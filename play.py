@@ -12,7 +12,7 @@ import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 
-def plot_robot_trajectory(positions, map_size=5, step=2):
+def plot_robot_trajectory(positions, map_size=5, step=2, savepath='trajectory_result.jpg'):
     """
     Function to plot the robot's trajectory.
     :param positions: List of robot positions (each position is a list of 3 coordinates).
@@ -47,16 +47,18 @@ def plot_robot_trajectory(positions, map_size=5, step=2):
     
     plt.gca().add_collection(lc)
     plt.colorbar(lc, label='Progression of Time')  # Add a color bar to show the progression
-    
+    plt.scatter(0, 0, color='red', s=100)  # Add a red point at the origin
     plt.xlim(-map_size/2, map_size/2)
     plt.ylim(-map_size/2, map_size/2)
     plt.axhline(0, color='gray', lw=0.5)
     plt.axvline(0, color='gray', lw=0.5)
-    plt.title("Robot Trajectory with Direction Indication")
+    plt.title("Robot Trajectory")
     plt.xlabel("X Coordinate")
     plt.ylabel("Z Coordinate")
     plt.grid(True)
+    plt.savefig(savepath, bbox_inches='tight')
     plt.show()
+    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -82,7 +84,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # 随机种子
-    seed = 2
+    seed = 1
 
     # 环境名
     env_id = "EpMineEnv-v0"
@@ -109,7 +111,9 @@ if __name__ == "__main__":
 
     print(save_path)
     # Load the saved model
-    model = algo.load(save_path, env=env)
+    model = algo.load(save_path, 
+                      # seed=seed,
+                       env=env,)
 
 
     print("==============================")
@@ -142,12 +146,12 @@ if __name__ == "__main__":
             episode_length += 1
             if dones:
                 is_success  = True
-                episode_success_rate.append(is_success)
+                
                 break   
         episode_rewards.append(episode_reward)
         episode_lengths.append(episode_length)
         all_robot_positions.append(robot_positions)
-            
+        episode_success_rate.append(is_success)    
         print(
             f"Episode {len(episode_rewards)} reward={episode_reward}, length={episode_length}"
         )

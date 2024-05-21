@@ -10,12 +10,12 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": [
-                "--algo",
-                "ppo",
-                "--save_path",
-                "runs\\RobotCv_baseline\\RobotCv_ppo.zip"
-            ],
+            // "args": [
+            //     "--algo",
+            //     "ppo",
+            //     "--save_path",
+            //     "runs\\RobotCv_baseline\\RobotCv_ppo.zip"
+            // ],
         }
     ]
 }

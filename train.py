@@ -16,7 +16,26 @@ def main(cfg : DictConfig) -> None:
     from stable_baselines3.common.utils import set_random_seed
     from envs.SingleAgent.mine_toy import EpMineEnv
     from cnnlstm_policy import CnnLSTMPolicy
-    
+    from collections import OrderedDict
+    from copy import deepcopy
+    from typing import Any, Callable, List, Optional, Sequence, Type, Union
+    from stable_baselines3.common.vec_env.base_vec_env import VecEnv, VecEnvIndices, VecEnvObs, VecEnvStepReturn
+
+
+    class CustomDummyVecEnv(DummyVecEnv):
+        def __init__(self, env_fns: List[Callable[[], gym.Env]], model = None):
+            super(CustomDummyVecEnv, self).__init__(env_fns)
+            self.feature_extractors = [env.feature_extractor for env in self.envs]
+            self.model =  model
+
+        
+        def reset(self) -> VecEnvObs:
+            for env_idx in range(self.num_envs):
+                obs = self.envs[env_idx].reset()
+                self._save_obs(env_idx, obs)
+            self.feature_extractors[env_idx].reset_hidden(batch_size=self.num_envs, height=height, width=width, device=obs.device)
+            self.model.policy.reset_lstm_hidden(batch_size=self.model.batch_size, height=obs_shape[1], width=obs_shape[2], device=model.device)
+            return self._obs_from_buf()
 
     print(OmegaConf.to_yaml(cfg)) # 打印配置
 
